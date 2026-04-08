@@ -68,7 +68,16 @@ def decrypt_file(shift1, shift2):
         file.write(decrypted_text)
 
 def verify_decryption():
-    pass
+    with open("raw_text.txt", "r") as file:
+        original_text = file.read()
+
+    with open("decrypted_text.txt", "r") as file:
+        decrypted_text = file.read()
+
+    if original_text == decrypted_text:
+        print("Decryption successful: original and decrypted texts match.")
+    else:
+        print("Decryption failed: original and decrypted texts do not match.")
 
 def main():
     pass
