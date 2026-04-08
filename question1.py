@@ -50,7 +50,13 @@ def transform_text(text, shift1, shift2, encrypt=True):
     return result
 
 def encrypt_file(shift1, shift2):
-    pass
+    with open("raw_text.txt", "r") as file:
+        original_text = file.read()
+
+    encrypted_text = transform_text(original_text, shift1, shift2, encrypt=True)
+
+    with open("encrypted_text.txt", "w") as file:
+        file.write(encrypted_text)
 
 def decrypt_file(shift1, shift2):
     pass
