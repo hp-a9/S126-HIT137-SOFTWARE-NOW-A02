@@ -37,7 +37,17 @@ def shift_uppercase(ch, shift1, shift2, encrypt=True):
     return ch
 
 def transform_text(text, shift1, shift2, encrypt=True):
-    pass
+    result = ""
+
+    for ch in text:
+        if 'a' <= ch <= 'z':
+            result += shift_lowercase(ch, shift1, shift2, encrypt)
+        elif 'A' <= ch <= 'Z':
+            result += shift_uppercase(ch, shift1, shift2, encrypt)
+        else:
+            result += ch  # keep unchanged
+
+    return result
 
 def encrypt_file(shift1, shift2):
     pass
