@@ -80,7 +80,12 @@ def verify_decryption():
         print("Decryption failed: original and decrypted texts do not match.")
 
 def main():
-    pass
+    shift1 = int(input("Enter shift1: "))
+    shift2 = int(input("Enter shift2: "))
 
+    encrypt_file(shift1, shift2)
+    decrypt_file(shift1, shift2)
+    verify_decryption()
+    
 if __name__ == "__main__":
     main()
