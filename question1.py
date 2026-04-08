@@ -1,5 +1,21 @@
 def shift_lowercase(ch, shift1, shift2, encrypt=True):
-    pass
+    if 'a' <= ch <= 'm':
+        shift = shift1 * shift2
+        if encrypt:
+            new_offset = (ord(ch) - ord('a') + shift) % 26
+        else:
+            new_offset = (ord(ch) - ord('a') - shift) % 26
+        return chr(ord('a') + new_offset)
+
+    elif 'n' <= ch <= 'z':
+        shift = shift1 + shift2
+        if encrypt:
+            new_offset = (ord(ch) - ord('a') - shift) % 26
+        else:
+            new_offset = (ord(ch) - ord('a') + shift) % 26
+        return chr(ord('a') + new_offset)
+
+    return ch
 
 def shift_uppercase(ch, shift1, shift2, encrypt=True):
     pass
