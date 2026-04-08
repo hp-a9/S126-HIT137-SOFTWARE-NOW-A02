@@ -59,7 +59,13 @@ def encrypt_file(shift1, shift2):
         file.write(encrypted_text)
 
 def decrypt_file(shift1, shift2):
-    pass
+    with open("encrypted_text.txt", "r") as file:
+        encrypted_text = file.read()
+
+    decrypted_text = transform_text(encrypted_text, shift1, shift2, encrypt=False)
+
+    with open("decrypted_text.txt", "w") as file:
+        file.write(decrypted_text)
 
 def verify_decryption():
     pass
