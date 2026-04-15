@@ -1,0 +1,4 @@
+Hello World! This is a secret message.
+Python programming is fun and exciting.
+Let's encrypt this text with shift ciphering
+Numbers like 123 and special chars !@# stay the same.

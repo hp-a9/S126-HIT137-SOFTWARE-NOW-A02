@@ -136,3 +136,66 @@ if __name__ == "__main__":
             print(f"Output: {result}")
         except ValueError as e:
             print(f"ERROR:  {e}")
+
+
+
+
+
+#  # =========== SECTION 2: INTERACTIVE USER INPUT ===========
+# print("\n" + "=" * 70)
+# print("SECTION 2: INTERACTIVE USER INPUT")
+# print("=" * 70)
+# print("\nEnter mathematical expressions to tokenize.")
+# print("Type 'quit' or 'exit' to stop.\n")
+
+# while True:
+#     try:
+#         # Get user input
+#         user_input = input("Enter expression: ").strip()
+        
+#         # Check if user wants to exit
+#         if user_input.lower() in ['quit', 'exit', 'q']:
+#             print("\n" + "=" * 70)
+#             print("Program successfully terminated...")
+#             print("=" * 70)
+#             break
+        
+#         # Skip empty input
+#         if not user_input:
+#             print("Please enter a non-empty expression.\n")
+#             continue
+        
+#         # Tokenize the input
+#         tokens = tokenize(user_input)
+        
+#         # Display results
+#         print(f"\nTokenization successful!")
+#         print(f"Tokens: {tokens}")
+        
+#         # Display tokens in a more readable format
+#         print(f"Formatted: ", end="")
+#         for token in tokens:
+#             if token == "END":
+#                 print(f"[END]", end="")
+#             elif token in '+-*/()':
+#                 print(f"[OP:{token}]", end=" ")
+#             elif token in '()':
+#                 if token == '(':
+#                     print(f"[LPAREN]", end=" ")
+#                 else:
+#                     print(f"[RPAREN]", end=" ")
+#             else:
+#                 # It's a number
+#                 print(f"[NUM:{token}]", end=" ")
+#         print("\n")
+        
+#     except ValueError as e:
+#         print(f"\nERROR: {e}\n")
+#     except KeyboardInterrupt:
+#         print("\n\n" + "=" * 70)
+#         print("Program interrupted!")
+#         print("=" * 70)
+#         break
+#     except Exception as e:
+#         print(f"\nUnexpected error: {e}\n")
+
