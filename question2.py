@@ -2,23 +2,22 @@
 EVALUATOR MODULE
 ================
 
-This is the FINAL PHASE of the mathematical expression evaluator.
+Final phase of the mathematical expression evaluator.
 
 Workflow:
-  input.txt (expressions to evaluate)
-       ↓
-  evaluator.py (reads, tokenizes, parses, evaluates)
-       ↓
-  output.txt (results with format specified by lecturer)
+  input.txt
+     ↓
+  question2.py
+     ↓
+  output.txt
 
-The evaluator reads from input.txt and writes results to output.txt
-in the format:
-  Input: 3 + 5 * 2
-  Tree: (+ 3 (* 5 2))
-  Tokens: [NUM:3] [OP:+] [NUM:5] [OP:*] [NUM:2] [END]
-  Result: 13
-  
-  (blank line between expressions)
+Reads expressions from input.txt and writes:
+Input: ...
+Tree: ...
+Tokens: ...
+Result: ...
+
+(blank line between each)
 """
 
 import os
@@ -28,118 +27,177 @@ from parser_refactored import parse_expression_string
 
 def format_tokens(expression_str):
     """
-    Tokenize expression and format tokens in the required format.
-    
-    Args:
-        expression_str: Mathematical expression as string
-        
-    Returns:
-        str: Formatted tokens like "[NUM:3] [OP:+] [NUM:5] [END]"
-              or "ERROR" if tokenization fails
+    Convert tokenizer output into required token display format.
     """
     try:
         tokens = tokenize(expression_str)
-        
         formatted_tokens = []
+
         for token in tokens:
-            if token == 'END':
+            if token == "END":
                 formatted_tokens.append("[END]")
-            elif token in '+-*/()':
-                if token == '(':
-                    formatted_tokens.append("[LPAREN:(]")
-                elif token == ')':
-                    formatted_tokens.append("[RPAREN:)]")
-                else:
-                    formatted_tokens.append(f"[OP:{token}]")
+            elif token == "(":
+                formatted_tokens.append("[LPAREN:(]")
+            elif token == ")":
+                formatted_tokens.append("[RPAREN:)]")
+            elif token in "+-*/":
+                formatted_tokens.append(f"[OP:{token}]")
             else:
-                # It's a number
+                value = float(token)
+                if value.is_integer():
+                    token = str(int(value))
                 formatted_tokens.append(f"[NUM:{token}]")
-        
+
         return " ".join(formatted_tokens)
+
     except ValueError:
         return "ERROR"
 
 
+def parse_tree_to_nested(tree_str):
+    """
+    Convert tree string like:
+      (+ 2 (* 3 4))
+    into nested tuples like:
+      ("+", 2, ("*", 3, 4))
+    """
+    spaced = tree_str.replace("(", " ( ").replace(")", " ) ")
+    tokens = spaced.split()
+    index = 0
+
+    def parse_node():
+        nonlocal index
+
+        if tokens[index] == "(":
+            index += 1
+            op = tokens[index]
+            index += 1
+
+            if op == "neg":
+                child = parse_node()
+                if tokens[index] != ")":
+                    raise ValueError("Invalid tree format")
+                index += 1
+                return ("neg", child)
+
+            left = parse_node()
+            right = parse_node()
+
+            if tokens[index] != ")":
+                raise ValueError("Invalid tree format")
+            index += 1
+            return (op, left, right)
+
+        else:
+            token = tokens[index]
+            index += 1
+            value = float(token)
+            if value.is_integer():
+                return int(value)
+            return value
+
+    return parse_node()
+
+
+def evaluate_tree(node):
+    """
+    Evaluate nested tuple tree.
+    """
+    if not isinstance(node, tuple):
+        return node
+
+    op = node[0]
+
+    if op == "neg":
+        return -evaluate_tree(node[1])
+
+    left = evaluate_tree(node[1])
+    right = evaluate_tree(node[2])
+
+    if op == "+":
+        return left + right
+    if op == "-":
+        return left - right
+    if op == "*":
+        return left * right
+    if op == "/":
+        if right == 0:
+            raise ZeroDivisionError("Division by zero")
+        return left / right
+
+    raise ValueError(f"Unknown operator: {op}")
+
+
 def format_result(value):
     """
-    Format the numeric result according to requirements:
-    - Whole numbers without decimal point (8.0 → 8)
-    - Otherwise rounded to 4 decimal places
-    
-    Args:
-        value: The numeric result (float)
-        
-    Returns:
-        str: Formatted result (int or float)
+    whole number -> no decimal
+    else -> 4 decimal places
     """
-    if isinstance(value, str):  # Error case
+    if isinstance(value, str):
         return value
-    
-    # Check if it's a whole number
-    if value == int(value):
+
+    if float(value).is_integer():
         return str(int(value))
-    else:
-        # Round to 4 decimal places
-        return f"{value:.4f}"
+
+    return f"{value:.4f}"
 
 
 def evaluate_expression(expression_str):
     """
-    Evaluate a single expression and return all components.
-    
-    Args:
-        expression_str: Mathematical expression as string
-        
     Returns:
-        dict: {
-            'input': original expression,
-            'tree': parse tree string or 'ERROR',
-            'tokens': formatted tokens or 'ERROR',
-            'result': numeric result or 'ERROR'
-        }
+    {
+        'input': ...,
+        'tree': ...,
+        'tokens': ...,
+        'result': ...
+    }
     """
     result_dict = {
-        'input': expression_str,
-        'tree': 'ERROR',
-        'tokens': 'ERROR',
-        'result': 'ERROR'
+        "input": expression_str,
+        "tree": "ERROR",
+        "tokens": "ERROR",
+        "result": "ERROR"
     }
-    
-    # Get tokens and format them
-    result_dict['tokens'] = format_tokens(expression_str)
-    
-    # Try to parse and evaluate
+
+    # token formatting
+    result_dict["tokens"] = format_tokens(expression_str)
+    if result_dict["tokens"] == "ERROR":
+        return result_dict
+
+    # parse tree
     try:
-        tree, value, pos = parse_expression_string(expression_str)
-        result_dict['tree'] = tree
-        result_dict['result'] = format_result(value)
-    except ValueError as e:
-        # Keep error markers from above
-        pass
-    
+        tree_str, pos = parse_expression_string(expression_str)
+        result_dict["tree"] = tree_str
+    except ValueError:
+        return result_dict
+
+    # evaluate separately so divide-by-zero keeps tree/tokens
+    try:
+        nested_tree = parse_tree_to_nested(tree_str)
+        value = evaluate_tree(nested_tree)
+        result_dict["result"] = format_result(value)
+    except ZeroDivisionError:
+        result_dict["result"] = "ERROR"
+    except Exception:
+        result_dict["tree"] = "ERROR"
+        result_dict["tokens"] = "ERROR"
+        result_dict["result"] = "ERROR"
+
     return result_dict
 
 
-def evaluate_file(input_path, output_path=None):
+def evaluate_file(input_path: str) -> list[dict]:
     """
-    Read expressions from input file and write results to output file.
-    
-    Args:
-        input_path: Path to input.txt file
-        output_path: Path to output.txt file (defaults to same directory as input)
-        
-    Returns:
-        list: List of result dictionaries (one per expression)
+    Read input file
+    Process all expressions
+    Write output.txt
+    Return results
     """
-    
-    # Determine output path
-    if output_path is None:
-        input_dir = os.path.dirname(os.path.abspath(input_path))
-        output_path = os.path.join(input_dir, 'output.txt')
-    
-    # Read input file
+    input_dir = os.path.dirname(os.path.abspath(input_path))
+    output_path = os.path.join(input_dir, "output.txt")
+
     try:
-        with open(input_path, 'r') as f:
+        with open(input_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
     except FileNotFoundError:
         print(f"Error: Input file '{input_path}' not found!")
@@ -147,75 +205,38 @@ def evaluate_file(input_path, output_path=None):
     except IOError as e:
         print(f"Error reading input file: {e}")
         return []
-    
-    # Process each expression
+
     results = []
-    output_lines = []
-    
-    for i, line in enumerate(lines):
-        # Skip empty lines and comments
-        line = line.strip()
-        
-        # Skip empty lines
-        if not line:
+
+    for line in lines:
+        expr = line.strip()
+
+        if not expr:
             continue
-        
-        # Skip comments (lines starting with #)
-        if line.startswith('#'):
-            continue
-        
-        print(f"Processing: {line}")
-        
-        # Evaluate the expression
-        result = evaluate_expression(line)
-        results.append(result)
-        
-        # Format for output file
-        output_lines.append(f"Input: {result['input']}")
-        output_lines.append(f"Tree: {result['tree']}")
-        output_lines.append(f"Tokens: {result['tokens']}")
-        output_lines.append(f"Result: {result['result']}")
-        output_lines.append("")  # Blank line between expressions
-    
-    # Write to output file
+
+        results.append(evaluate_expression(expr))
+
     try:
-        with open(output_path, 'w') as f:
-            f.write('\n'.join(output_lines))
-        print(f"\n✓ Results written to: {output_path}")
+        with open(output_path, "w", encoding="utf-8") as f:
+            for i, result in enumerate(results):
+                f.write(f"Input: {result['input']}\n")
+                f.write(f"Tree: {result['tree']}\n")
+                f.write(f"Tokens: {result['tokens']}\n")
+                f.write(f"Result: {result['result']}\n")
+                if i != len(results) - 1:
+                    f.write("\n")
     except IOError as e:
-        print(f"Error writing to output file: {e}")
-        return results
-    
+        print(f"Error writing output file: {e}")
+
     return results
 
 
-# ============================================================================
-# MAIN - Run the evaluator
-# ============================================================================
-
 if __name__ == "__main__":
-    print("=" * 70)
-    print("MATHEMATICAL EXPRESSION EVALUATOR")
-    print("=" * 70)
-    print()
-    
-    # Find input.txt in the current directory or ask user
     input_file = "input.txt"
-    
+
     if not os.path.exists(input_file):
         print(f"Error: {input_file} not found in current directory!")
-        print("Please create an input.txt file with expressions to evaluate.")
         exit(1)
-    
-    print(f"Reading from: {input_file}")
-    print("-" * 70)
-    print()
-    
-    # Run the evaluator
+
     results = evaluate_file(input_file)
-    
-    # Summary
-    print()
-    print("=" * 70)
-    print(f"SUMMARY: {len(results)} expression(s) processed")
-    print("=" * 70)
+    print(f"{len(results)} expression(s) processed.")
