@@ -1,7 +1,6 @@
 """
 EVALUATOR MODULE
 ================
-[ IMPORTANT NOTE!!! :: The two files 'q2' and 'parser_refactored' can be found in the branch "Tokenizer" ]
 
 This is the FINAL PHASE of the mathematical expression evaluator.
 
@@ -10,7 +9,7 @@ Workflow:
        ↓
   evaluator.py (reads, tokenizes, parses, evaluates)
        ↓
-  output.txt (results with format specified by the lecturer)
+  output.txt (results with format specified by lecturer)
 
 The evaluator reads from input.txt and writes results to output.txt
 in the format:
@@ -20,13 +19,11 @@ in the format:
   Result: 13
   
   (blank line between expressions)
-
-  
 """
 
 import os
-from q2 import tokenize # get the file 'q2' from Branch "Tokenizer"
-from parser_refactored import parse_expression_string # get the file 'parser_refactored' from Branch "Tokenizer"
+from q2 import tokenize
+from parser_refactored import parse_expression_string
 
 
 def format_tokens(expression_str):
@@ -49,9 +46,9 @@ def format_tokens(expression_str):
                 formatted_tokens.append("[END]")
             elif token in '+-*/()':
                 if token == '(':
-                    formatted_tokens.append("[LPAREN]")
+                    formatted_tokens.append("[LPAREN:(]")
                 elif token == ')':
-                    formatted_tokens.append("[RPAREN]")
+                    formatted_tokens.append("[RPAREN:)]")
                 else:
                     formatted_tokens.append(f"[OP:{token}]")
             else:
